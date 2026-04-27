@@ -87,10 +87,6 @@ def align_features(df, model):
 
 input_df = align_features(input_df, model)
 
-preprocessor = model[:-1]
-final_model = model.named_steps["classifier"]
-X_processed = preprocessor.transform(input_df)
-
 # -----------------------------
 # PREDICTION
 # -----------------------------
@@ -135,6 +131,9 @@ if st.button("🚀 Predict"):
     st.subheader("🔍 SHAP Explanation")
 
     try:
+        preprocessor = model[:-1]
+        final_model = model.named_steps["classifier"]
+        X_processed = preprocessor.transform(input_df)
         explainer = shap.TreeExplainer(final_model)
         shap_values = explainer.shap_values(X_processed)
 
