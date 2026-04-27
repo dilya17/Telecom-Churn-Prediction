@@ -1,3 +1,10 @@
+def engineer_all_features(X: pd.DataFrame) -> pd.DataFrame:
+    X = X.copy()
+    X["RevenuePerMinute"] = X["MonthlyRevenue"] / (X["MonthlyMinutes"] + 1)
+    X["ServiceDistressIndex"] = ((X["CustomerCareCalls"] + X["DroppedCalls"] + X["BlockedCalls"]) / (X["MonthsInService"] + 1))
+    X["OverageRatio"] = X["OverageMinutes"] / (X["MonthlyMinutes"] + 1)
+    return X
+    
 import streamlit as st
 import pandas as pd
 import numpy as np
