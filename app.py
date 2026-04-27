@@ -28,6 +28,9 @@ def load_model():
     return joblib.load("model.pkl")
 
 model = load_model()
+preprocessor = model[:-1]
+final_model = model.named_steps["classifier"]
+X_processed = preprocessor.transform(input_df)
 
 # -----------------------------
 # OPTIONAL: LOAD HOLDOUT DATA
@@ -131,13 +134,13 @@ if st.button("🚀 Predict"):
     st.subheader("🔍 SHAP Explanation")
 
     try:
-        explainer = shap.Explainer(model)
-        shap_values = explainer(input_df)
+        explainer = shap.TreeExplainer(final_model)
+        shap_values = explainer.shap_values(X_processed)
 
         st.write("Feature contribution (waterfall plot):")
 
         fig, ax = plt.subplots()
-        shap.plots.waterfall(shap_values[0], show=False)
+        shap.plots.waterfall(shap.Explanation(values=shap_values[0], base_values=explainer.expected_value, data=X_processed[0]))
         st.pyplot(fig)
 
     except Exception as e:
