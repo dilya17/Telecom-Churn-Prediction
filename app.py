@@ -63,7 +63,7 @@ def user_input():
     }
     return pd.DataFrame([data])
 
-input_df = user_input()
+input_df = engineer_all_features(user_input())
 
 # -----------------------------
 # HOLDOUT SAMPLE OPTION
@@ -71,7 +71,7 @@ input_df = user_input()
 if holdout_df is not None:
     if st.checkbox("🎲 Use random customer from holdout dataset"):
         sample = holdout_df.sample(1)
-        input_df = sample.copy()
+        input_df = engineer_all_features(sample.copy())
         st.write("Sample from holdout dataset:")
         st.dataframe(input_df)
 
@@ -80,10 +80,16 @@ if holdout_df is not None:
 # -----------------------------
 def align_features(df, model):
     expected_cols = model.feature_names_in_
+
+    # add missing
     for col in expected_cols:
         if col not in df.columns:
             df[col] = 0
-    return df[expected_cols]
+
+    # remove extra
+    df = df[expected_cols]
+
+    return df
 
 input_df = align_features(input_df, model)
 
@@ -131,12 +137,11 @@ if st.button("🚀 Predict"):
     st.subheader("🔍 SHAP Explanation")
 
     try:
-        preprocessor = model[:-1]
         final_model = model.named_steps["classifier"]
-        X_processed = preprocessor.transform(input_df)
         explainer = shap.TreeExplainer(final_model)
+        X_processed = model[:-1].transform(input_df)
         shap_values = explainer.shap_values(X_processed)
-
+        
         st.write("Feature contribution (waterfall plot):")
 
         fig, ax = plt.subplots()
