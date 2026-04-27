@@ -28,9 +28,6 @@ def load_model():
     return joblib.load("model.pkl")
 
 model = load_model()
-preprocessor = model[:-1]
-final_model = model.named_steps["classifier"]
-X_processed = preprocessor.transform(input_df)
 
 # -----------------------------
 # OPTIONAL: LOAD HOLDOUT DATA
@@ -89,6 +86,10 @@ def align_features(df, model):
     return df[expected_cols]
 
 input_df = align_features(input_df, model)
+
+preprocessor = model[:-1]
+final_model = model.named_steps["classifier"]
+X_processed = preprocessor.transform(input_df)
 
 # -----------------------------
 # PREDICTION
