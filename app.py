@@ -106,8 +106,9 @@ threshold = st.slider("🎯 Classification Threshold", 0.0, 1.0, 0.5)
 # SHAP EXPLAINER (CACHED)
 # -----------------------------
 @st.cache_resource
-def get_explainer(model):
-    return shap.TreeExplainer(model.named_steps["classifier"])
+def get_explainer(_model):
+    final_model = list(_model.named_steps.values())[-1]
+    return shap.TreeExplainer(final_model)
 
 explainer = get_explainer(model)
 
