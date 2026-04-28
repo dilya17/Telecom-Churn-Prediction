@@ -31,7 +31,9 @@ def load_model():
     return joblib.load("model.pkl")
 
 model = load_model()
-st.write(model.named_steps)
+
+# st.write(model.named_steps)
+
 # -----------------------------
 # LOAD HOLDOUT DATA
 # -----------------------------
