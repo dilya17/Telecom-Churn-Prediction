@@ -31,7 +31,7 @@ def load_model():
     return joblib.load("model.pkl")
 
 model = load_model()
-
+st.write(model.named_steps)
 # -----------------------------
 # LOAD HOLDOUT DATA
 # -----------------------------
@@ -84,7 +84,7 @@ if holdout_df is not None:
 def align_features(df, model):
     df = df.copy()
 
-    expected_cols = model.named_steps["preprocessor"].feature_names_in_
+    expected_cols = model.named_steps["preprocess"].feature_names_in_
 
     for col in expected_cols:
         if col not in df.columns:
