@@ -153,34 +153,47 @@ if st.button("🚀 Predict"):
     st.subheader("🔍 SHAP Explanation")
 
     try:
-        # Transform input using pipeline (excluding final model)
-        X_processed = model[:-1].transform(input_df)
+    # Step 1: get preprocessing pipeline (everything except final model)
+    preprocess = model[:-1]
 
-        # Get feature names AFTER transformation
-        feature_names = model.named_steps["preprocessor"].get_feature_names_out()
+    # Step 2: transform input
+    X_processed = preprocess.transform(input_df)
 
-        # Convert to DataFrame (IMPORTANT FIX)
-        X_processed_df = pd.DataFrame(X_processed, columns=feature_names)
+    # Step 3: get feature names from FULL pipeline
+    try:
+        feature_names = preprocess.get_feature_names_out()
+    except:
+        # fallback if not available
+        feature_names = [f"Feature {i}" for i in range(X_processed.shape[1])]
 
-        # Compute SHAP
-        shap_values = explainer.shap_values(X_processed_df)
+    # Step 4: ensure correct length
+    if len(feature_names) != X_processed.shape[1]:
+        feature_names = feature_names[:X_processed.shape[1]]
 
-        st.write("Feature contribution:")
+    # Step 5: convert to DataFrame
+    X_processed_df = pd.DataFrame(X_processed, columns=feature_names)
 
-        fig, ax = plt.subplots()
+    # Step 6: SHAP
+    final_model = list(model.named_steps.values())[-1]
+    explainer = shap.TreeExplainer(final_model)
+    shap_values = explainer.shap_values(X_processed_df)
 
-        shap.plots.waterfall(
-            shap.Explanation(
-                values=shap_values[0],
-                base_values=explainer.expected_value,
-                data=X_processed_df.iloc[0],
-                feature_names=feature_names
-            ),
-            show=False
-        )
+    st.write("Feature contribution:")
 
-        st.pyplot(fig)
+    fig, ax = plt.subplots()
 
-    except Exception as e:
-        st.warning("SHAP visualization failed.")
-        st.write(str(e))
+    shap.plots.waterfall(
+        shap.Explanation(
+            values=shap_values[0],
+            base_values=explainer.expected_value,
+            data=X_processed_df.iloc[0],
+            feature_names=feature_names
+        ),
+        show=False
+    )
+
+    st.pyplot(fig)
+
+except Exception as e:
+    st.warning("SHAP visualization failed.")
+    st.write(str(e))
