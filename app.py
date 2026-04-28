@@ -84,7 +84,7 @@ if holdout_df is not None:
 def align_features(df, model):
     df = df.copy()
 
-    expected_cols = model.named_steps["preprocess"].feature_names_in_
+    expected_cols = model.named_steps["preprocessor"].feature_names_in_
 
     for col in expected_cols:
         if col not in df.columns:
@@ -154,7 +154,7 @@ if st.button("🚀 Predict"):
         X_processed = model[:-1].transform(input_df)
 
         # Get feature names AFTER transformation
-        feature_names = model.named_steps["preprocess"].get_feature_names_out()
+        feature_names = model.named_steps["preprocessor"].get_feature_names_out()
 
         # Convert to DataFrame (IMPORTANT FIX)
         X_processed_df = pd.DataFrame(X_processed, columns=feature_names)
