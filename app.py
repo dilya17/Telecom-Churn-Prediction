@@ -153,47 +153,47 @@ if st.button("🚀 Predict"):
     st.subheader("🔍 SHAP Explanation")
 
     try:
-    # Step 1: get preprocessing pipeline (everything except final model)
-    preprocess = model[:-1]
-
-    # Step 2: transform input
-    X_processed = preprocess.transform(input_df)
-
-    # Step 3: get feature names from FULL pipeline
-    try:
-        feature_names = preprocess.get_feature_names_out()
-    except:
-        # fallback if not available
-        feature_names = [f"Feature {i}" for i in range(X_processed.shape[1])]
-
-    # Step 4: ensure correct length
-    if len(feature_names) != X_processed.shape[1]:
-        feature_names = feature_names[:X_processed.shape[1]]
-
-    # Step 5: convert to DataFrame
-    X_processed_df = pd.DataFrame(X_processed, columns=feature_names)
-
-    # Step 6: SHAP
-    final_model = list(model.named_steps.values())[-1]
-    explainer = shap.TreeExplainer(final_model)
-    shap_values = explainer.shap_values(X_processed_df)
-
-    st.write("Feature contribution:")
-
-    fig, ax = plt.subplots()
-
-    shap.plots.waterfall(
-        shap.Explanation(
-            values=shap_values[0],
-            base_values=explainer.expected_value,
-            data=X_processed_df.iloc[0],
-            feature_names=feature_names
-        ),
-        show=False
-    )
-
-    st.pyplot(fig)
-
-except Exception as e:
-    st.warning("SHAP visualization failed.")
-    st.write(str(e))
+        # Step 1: get preprocessing pipeline (everything except final model)
+        preprocess = model[:-1]
+    
+        # Step 2: transform input
+        X_processed = preprocess.transform(input_df)
+    
+        # Step 3: get feature names from FULL pipeline
+        try:
+            feature_names = preprocess.get_feature_names_out()
+        except:
+            # fallback if not available
+            feature_names = [f"Feature {i}" for i in range(X_processed.shape[1])]
+    
+        # Step 4: ensure correct length
+        if len(feature_names) != X_processed.shape[1]:
+            feature_names = feature_names[:X_processed.shape[1]]
+    
+        # Step 5: convert to DataFrame
+        X_processed_df = pd.DataFrame(X_processed, columns=feature_names)
+    
+        # Step 6: SHAP
+        final_model = list(model.named_steps.values())[-1]
+        explainer = shap.TreeExplainer(final_model)
+        shap_values = explainer.shap_values(X_processed_df)
+    
+        st.write("Feature contribution:")
+    
+        fig, ax = plt.subplots()
+    
+        shap.plots.waterfall(
+            shap.Explanation(
+                values=shap_values[0],
+                base_values=explainer.expected_value,
+                data=X_processed_df.iloc[0],
+                feature_names=feature_names
+            ),
+            show=False
+        )
+    
+        st.pyplot(fig)
+    
+    except Exception as e:
+        st.warning("SHAP visualization failed.")
+        st.write(str(e))
