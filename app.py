@@ -153,36 +153,47 @@ if st.button("🚀 Predict"):
     st.subheader("🔍 SHAP Explanation")
     
     try:
-        # 1. Full preprocessing pipeline
-        preprocess = model[:-1]
+        preprocess = model.named_steps["preprocessor"]
     
-        # 2. Transform input
+        # Transform input
         X_processed = preprocess.transform(input_df)
     
-        # 3. Get correct feature names
-        feature_names = [f"Feature_{i}" for i in range(X_processed.shape[1])]
+        # 🔥 IMPORTANT: manually reconstruct feature names
+        feature_names = []
     
-        # 4. Fix mismatch if needed
+        for name, transformer, cols in preprocess.transformers_:
+            if name == "remainder":
+                continue
+    
+            if hasattr(transformer, "get_feature_names_out"):
+                try:
+                    names = transformer.get_feature_names_out(cols)
+                except:
+                    names = cols
+            else:
+                names = cols
+    
+            feature_names.extend(names)
+    
+        # If still mismatch, fallback safely
         if len(feature_names) != X_processed.shape[1]:
-            feature_names = feature_names[:X_processed.shape[1]]
+            feature_names = [f"Feature_{i}" for i in range(X_processed.shape[1])]
     
-        # OPTIONAL: cleaner names
-        feature_names = [name.split("__")[-1] for name in feature_names]
+        # Clean names (optional)
+        feature_names = [str(name).split("__")[-1] for name in feature_names]
     
-        # 5. Convert to DataFrame (VERY IMPORTANT)
+        # Convert to DataFrame
         X_processed_df = pd.DataFrame(X_processed, columns=feature_names)
     
-        # 6. SHAP
+        # SHAP
         final_model = model.named_steps["classifier"]
         explainer = shap.TreeExplainer(final_model)
     
         shap_values = explainer.shap_values(X_processed_df)
     
-        # Handle XGBoost output
         if isinstance(shap_values, list):
             shap_values = shap_values[1]
     
-        # 7. Create Explanation object correctly
         explanation = shap.Explanation(
             values=shap_values[0],
             base_values=explainer.expected_value,
@@ -193,9 +204,7 @@ if st.button("🚀 Predict"):
         st.write("Feature contribution:")
     
         fig, ax = plt.subplots()
-    
         shap.plots.waterfall(explanation, show=False)
-    
         st.pyplot(fig)
     
     except Exception as e:
