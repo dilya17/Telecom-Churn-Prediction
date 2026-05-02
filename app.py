@@ -148,49 +148,56 @@ if st.button("🚀 Predict"):
     st.write(f"**Expected Profit from targeting this customer:** ${expected_profit:.2f}")
 
     # -----------------------------
-    # SHAP EXPLANATION (FIXED)
+    # SHAP EXPLANATION
     # -----------------------------
     st.subheader("🔍 SHAP Explanation")
-
+    
     try:
-        # Step 1: get preprocessing pipeline (everything except final model)
+        # 1. Full preprocessing pipeline
         preprocess = model[:-1]
     
-        # Step 2: transform input
+        # 2. Transform input
         X_processed = preprocess.transform(input_df)
     
-        # Step 3: get feature names from FULL pipeline
+        # 3. Get correct feature names
         try:
             feature_names = preprocess.get_feature_names_out()
         except:
-            # fallback if not available
-            feature_names = [f"Feature {i}" for i in range(X_processed.shape[1])]
+            feature_names = [f"Feature_{i}" for i in range(X_processed.shape[1])]
     
-        # Step 4: ensure correct length
+        # 4. Fix mismatch if needed
         if len(feature_names) != X_processed.shape[1]:
             feature_names = feature_names[:X_processed.shape[1]]
     
-        # Step 5: convert to DataFrame
+        # OPTIONAL: cleaner names
+        feature_names = [name.split("__")[-1] for name in feature_names]
+    
+        # 5. Convert to DataFrame (VERY IMPORTANT)
         X_processed_df = pd.DataFrame(X_processed, columns=feature_names)
     
-        # Step 6: SHAP
-        final_model = list(model.named_steps.values())[-1]
+        # 6. SHAP
+        final_model = model.named_steps["classifier"]
         explainer = shap.TreeExplainer(final_model)
+    
         shap_values = explainer.shap_values(X_processed_df)
+    
+        # Handle XGBoost output
+        if isinstance(shap_values, list):
+            shap_values = shap_values[1]
+    
+        # 7. Create Explanation object correctly
+        explanation = shap.Explanation(
+            values=shap_values[0],
+            base_values=explainer.expected_value,
+            data=X_processed_df.iloc[0],
+            feature_names=feature_names
+        )
     
         st.write("Feature contribution:")
     
         fig, ax = plt.subplots()
     
-        shap.plots.waterfall(
-            shap.Explanation(
-                values=shap_values[0],
-                base_values=explainer.expected_value,
-                data=X_processed_df.iloc[0],
-                feature_names=feature_names
-            ),
-            show=False
-        )
+        shap.plots.waterfall(explanation, show=False)
     
         st.pyplot(fig)
     
