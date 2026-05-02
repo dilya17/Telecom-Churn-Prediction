@@ -160,10 +160,7 @@ if st.button("🚀 Predict"):
         X_processed = preprocess.transform(input_df)
     
         # 3. Get correct feature names
-        try:
-            feature_names = preprocess.get_feature_names_out()
-        except:
-            feature_names = [f"Feature_{i}" for i in range(X_processed.shape[1])]
+        feature_names = [f"Feature_{i}" for i in range(X_processed.shape[1])]
     
         # 4. Fix mismatch if needed
         if len(feature_names) != X_processed.shape[1]:
